@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Federated Learning - Privacy-Preserving Keyboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Federated Learning Demo</h1>
+            <p class="subtitle">Privacy-Preserving Next-Word Prediction</p>
+        </header>
+
+        <div class="stats-panel">
+            <div class="stat-card">
+                <h3>Global Model Accuracy</h3>
+                <div class="stat-value" id="globalAccuracy">0%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Training Rounds</h3>
+                <div class="stat-value" id="trainingRounds">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Updates</h3>
+                <div class="stat-value" id="totalUpdates">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startTraining" class="btn btn-primary">Start Federated Training</button>
+            <button id="resetModels" class="btn btn-secondary">Reset All Models</button>
+            <a href="visualization.html" class="btn btn-secondary" style="text-decoration: none; display: inline-block; line-height: 1;">Behind the Scenes</a>
+            <a href="monitor.html" class="btn btn-secondary" style="text-decoration: none; display: inline-block; line-height: 1;">Live Monitor</a>
+            <div class="training-status" id="trainingStatus">Ready to train</div>
+        </div>
+
+        <div class="users-grid">
+            <!-- User 1: Sports Enthusiast -->
+            <div class="user-panel" data-user="sports">
+                <div class="user-header">
+                    <h2>Alex Martinez</h2>
+                    <div class="user-stats">
+                        <span>Accuracy: <span id="sports-accuracy">0%</span></span>
+                        <span>Loss: <span id="sports-loss">-</span></span>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <div class="messages" id="sports-messages"></div>
+                    <div class="input-area">
+                        <input type="text" 
+                               id="sports-input" 
+                               class="chat-input" 
+                               placeholder="Search or type a message..."
+                               autocomplete="off">
+                        <div class="predictions" id="sports-predictions"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User 2: Baking Expert -->
+            <div class="user-panel" data-user="baking">
+                <div class="user-header">
+                    <h2>Bailey Chen</h2>
+                    <div class="user-stats">
+                        <span>Accuracy: <span id="baking-accuracy">0%</span></span>
+                        <span>Loss: <span id="baking-loss">-</span></span>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <div class="messages" id="baking-messages"></div>
+                    <div class="input-area">
+                        <input type="text" 
+                               id="baking-input" 
+                               class="chat-input" 
+                               placeholder="Search or type a message..."
+                               autocomplete="off">
+                        <div class="predictions" id="baking-predictions"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User 3: Computer Science -->
+            <div class="user-panel" data-user="cs">
+                <div class="user-header">
+                    <h2>Chris Taylor</h2>
+                    <div class="user-stats">
+                        <span>Accuracy: <span id="cs-accuracy">0%</span></span>
+                        <span>Loss: <span id="cs-loss">-</span></span>
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <div class="messages" id="cs-messages"></div>
+                    <div class="input-area">
+                        <input type="text" 
+                               id="cs-input" 
+                               class="chat-input" 
+                               placeholder="Search or type a message..."
+                               autocomplete="off">
+                        <div class="predictions" id="cs-predictions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h3>How Federated Learning Works</h3>
+            <ol>
+                <li><strong>Local Training:</strong> Each user's model trains on their own data locally</li>
+                <li><strong>Model Updates:</strong> Only model weights (not data) are shared</li>
+                <li><strong>Federated Averaging:</strong> Server aggregates weights to create global model</li>
+                <li><strong>Distribution:</strong> Updated global model sent back to all users</li>
+                <li><strong>Privacy:</strong> Raw data never leaves the user's device</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="vocabulary.js"></script>
+    <script src="model.js"></script>
+    <script src="federatedLearning.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

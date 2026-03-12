@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Training Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #252526;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007acc;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            color: #4ec9b0;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #858585;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            background: #252526;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9em;
+        }
+
+        .btn:hover {
+            background: #1177bb;
+        }
+
+        .btn-secondary {
+            background: #3c3c3c;
+        }
+
+        .btn-secondary:hover {
+            background: #505050;
+        }
+
+        .status {
+            margin-left: auto;
+            color: #4ec9b0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: #252526;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 12px 15px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header.sports {
+            border-left: 4px solid #ea4335;
+        }
+
+        .panel-header.baking {
+            border-left: 4px solid #4285f4;
+        }
+
+        .panel-header.cs {
+            border-left: 4px solid #34a853;
+        }
+
+        .panel-header.server {
+            border-left: 4px solid #fbbc04;
+        }
+
+        .panel-content {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 6px 8px;
+            background: #1e1e1e;
+            border-radius: 3px;
+            border-left: 3px solid #3e3e42;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-entry.info {
+            border-left-color: #4ec9b0;
+        }
+
+        .log-entry.success {
+            border-left-color: #4ec9b0;
+        }
+
+        .log-entry.warning {
+            border-left-color: #dcdcaa;
+        }
+
+        .log-entry.error {
+            border-left-color: #f48771;
+        }
+
+        .timestamp {
+            color: #858585;
+            font-size: 0.85em;
+            margin-right: 8px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #9cdcfe;
+        }
+
+        .metric-value {
+            color: #b5cea8;
+            font-weight: bold;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            margin: 8px 0;
+            border: 1px solid #3e3e42;
+        }
+
+        .key {
+            color: #9cdcfe;
+        }
+
+        .string {
+            color: #ce9178;
+        }
+
+        .number {
+            color: #b5cea8;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .data-flow {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+            background: #1e1e1e;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .flow-node {
+            padding: 15px 20px;
+            background: #252526;
+            border-radius: 4px;
+            border: 2px solid #3e3e42;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .flow-node.active {
+            border-color: #007acc;
+            box-shadow: 0 0 20px rgba(0, 122, 204, 0.5);
+        }
+
+        .flow-arrow {
+            color: #858585;
+            font-size: 2em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #3e3e42;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #007acc;
+            transition: width 0.3s ease;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3e3e42;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #505050;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .badge-success {
+            background: #4ec9b0;
+            color: #1e1e1e;
+        }
+
+        .badge-warning {
+            background: #dcdcaa;
+            color: #1e1e1e;
+        }
+
+        .badge-info {
+            background: #007acc;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Live Training Monitor</h1>
+            <p>Real-time view of federated learning process</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="startMonitoring()">Start Training & Monitor</button>
+            <button class="btn btn-secondary" onclick="clearLogs()">Clear Logs</button>
+            <button class="btn btn-secondary" onclick="window.open('index.html', '_blank')">Open Main Demo</button>
+            <div class="status" id="status">Waiting to start...</div>
+        </div>
+
+        <!-- Data Flow Visualization -->
+        <div class="panel full-width">
+            <div class="panel-header server">
+                <span>Data Flow Visualization</span>
+            </div>
+            <div class="panel-content">
+                <div class="data-flow">
+                    <div class="flow-node" id="node-sports">
+                        <div>Alex (Sports)</div>
+                        <div style="font-size: 0.8em; color: #858585; margin-top: 4px;">Local Training</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node" id="node-server">
+                        <div>Server</div>
+                        <div style="font-size: 0.8em; color: #858585; margin-top: 4px;">Aggregating</div>
+                    </div>
+                    <div class="flow-arrow">←</div>
+                    <div class="flow-node" id="node-baking">
+                        <div>Bailey (Baking)</div>
+                        <div style="font-size: 0.8em; color: #858585; margin-top: 4px;">Local Training</div>
+                    </div>
+                </div>
+                <div class="data-flow" style="justify-content: center;">
+                    <div class="flow-node" id="node-cs">
+                        <div>Chris (CS)</div>
+                        <div style="font-size: 0.8em; color: #858585; margin-top: 4px;">Local Training</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Panels -->
+        <div class="grid">
+            <!-- Sports Client -->
+            <div class="panel">
+                <div class="panel-header sports">
+                    <span>Alex (Sports) - Local Model</span>
+                    <span class="badge badge-info" id="sports-status">Idle</span>
+                </div>
+                <div class="panel-content" id="sports-logs">
+                    <div class="log-entry info">
+                        <span class="timestamp">00:00:00</span>
+                        <span>Model initialized</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baking Client -->
+            <div class="panel">
+                <div class="panel-header baking">
+                    <span>Bailey (Baking) - Local Model</span>
+                    <span class="badge badge-info" id="baking-status">Idle</span>
+                </div>
+                <div class="panel-content" id="baking-logs">
+                    <div class="log-entry info">
+                        <span class="timestamp">00:00:00</span>
+                        <span>Model initialized</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CS Client -->
+            <div class="panel">
+                <div class="panel-header cs">
+                    <span>Chris (CS) - Local Model</span>
+                    <span class="badge badge-info" id="cs-status">Idle</span>
+                </div>
+                <div class="panel-content" id="cs-logs">
+                    <div class="log-entry info">
+                        <span class="timestamp">00:00:00</span>
+                        <span>Model initialized</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Server Panel -->
+        <div class="panel full-width">
+            <div class="panel-header server">
+                <span>Federated Server - Aggregation & Distribution</span>
+                <span class="badge badge-info" id="server-status">Idle</span>
+            </div>
+            <div class="panel-content" id="server-logs">
+                <div class="log-entry info">
+                    <span class="timestamp">00:00:00</span>
+                    <span>Server ready for federated learning</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Weights Panel -->
+        <div class="panel full-width">
+            <div class="panel-header server">
+                <span>Model Weights & Data Structures</span>
+            </div>
+            <div class="panel-content" id="weights-view">
+                <div style="color: #858585; text-align: center; padding: 20px;">
+                    Start training to see model weights and data structures...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vocabulary.js"></script>
+    <script src="model.js"></script>
+    <script src="federatedLearning.js"></script>
+    <script>
+        let startTime = Date.now();
+
+        function getTimestamp() {
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const ms = elapsed % 1000;
+            return `${String(seconds).padStart(2, '0')}:${String(ms).padStart(3, '0')}`;
+        }
+
+        function addLog(panelId, message, type = 'info') {
+            const panel = document.getElementById(panelId);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="timestamp">${getTimestamp()}</span><span>${message}</span>`;
+            panel.appendChild(entry);
+            panel.scrollTop = panel.scrollHeight;
+        }
+
+        function updateStatus(elementId, text, badgeClass = 'badge-info') {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            element.className = `badge ${badgeClass}`;
+        }
+
+        function activateNode(nodeId) {
+            document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active'));
+            document.getElementById(nodeId).classList.add('active');
+        }
+
+        function displayWeights(clientId, weights) {
+            const weightsView = document.getElementById('weights-view');
+            const section = document.createElement('div');
+            section.style.marginBottom = '20px';
+            
+            let html = `<div style="color: #4ec9b0; font-weight: bold; margin-bottom: 10px;">${clientId.toUpperCase()} Model Weights:</div>`;
+            
+            // Show sample n-grams
+            html += '<div class="code-block">';
+            html += '<span class="key">ngramModel</span>: {<br>';
+            const ngrams = Object.entries(weights.ngramModel || {}).slice(0, 3);
+            ngrams.forEach(([context, nextWords], i) => {
+                html += `  <span class="string">"${context}"</span>: {`;
+                const words = Object.entries(nextWords).slice(0, 3);
+                words.forEach(([word, count], j) => {
+                    html += `<span class="string">"${word}"</span>: <span class="number">${count}</span>`;
+                    if (j < words.length - 1) html += ', ';
+                });
+                html += '}';
+                if (i < ngrams.length - 1) html += ',';
+                html += '<br>';
+            });
+            html += '}<br><br>';
+            
+            // Show metrics
+            html += `<span class="key">accuracy</span>: <span class="number">${(weights.accuracy * 100).toFixed(2)}%</span><br>`;
+            html += `<span class="key">loss</span>: <span class="number">${weights.loss.toFixed(4)}</span><br>`;
+            html += `<span class="key">vocabulary_size</span>: <span class="number">${Object.keys(weights.wordFrequency || {}).length}</span>`;
+            html += '</div>';
+            
+            section.innerHTML = html;
+            weightsView.appendChild(section);
+            weightsView.scrollTop = weightsView.scrollHeight;
+        }
+
+        async function startMonitoring() {
+            startTime = Date.now();
+            clearLogs();
+            
+            updateStatus('status', 'Initializing...', 'badge-warning');
+            addLog('server-logs', 'Initializing federated learning system...', 'info');
+            
+            // Initialize clients
+            const clients = {};
+            const profiles = ['sports', 'baking', 'cs'];
+            
+            for (const profile of profiles) {
+                addLog(`${profile}-logs`, `Creating ${profile} model...`, 'info');
+                updateStatus(`${profile}-status`, 'Initializing', 'badge-warning');
+                activateNode(`node-${profile}`);
+                
+                const client = new FederatedClient(profile, VOCABULARY[profile], TRAINING_DATA[profile]);
+                await client.initialize();
+                clients[profile] = client;
+                
+                addLog(`${profile}-logs`, `Model created with ${VOCABULARY[profile].length} words`, 'success');
+                addLog(`${profile}-logs`, `Training data: ${TRAINING_DATA[profile].length} sentences`, 'info');
+                updateStatus(`${profile}-status`, 'Ready', 'badge-success');
+                
+                await new Promise(r => setTimeout(r, 300));
+            }
+            
+            // Phase 1: Local Training
+            updateStatus('status', 'Phase 1: Local Training', 'badge-warning');
+            addLog('server-logs', '=== PHASE 1: LOCAL TRAINING ===', 'warning');
+            
+            for (const profile of profiles) {
+                activateNode(`node-${profile}`);
+                updateStatus(`${profile}-status`, 'Training', 'badge-warning');
+                addLog(`${profile}-logs`, 'Starting local training...', 'info');
+                addLog(`${profile}-logs`, `Processing ${TRAINING_DATA[profile].length} sentences...`, 'info');
+                
+                const result = await clients[profile].localTraining(1);
+                
+                addLog(`${profile}-logs`, `Training complete!`, 'success');
+                addLog(`${profile}-logs`, `Accuracy: ${(result.accuracy * 100).toFixed(2)}%`, 'success');
+                addLog(`${profile}-logs`, `Loss: ${result.loss.toFixed(4)}`, 'info');
+                updateStatus(`${profile}-status`, `Trained (${(result.accuracy * 100).toFixed(0)}%)`, 'badge-success');
+                
+                displayWeights(profile, clients[profile].getModel().getWeights());
+                
+                await new Promise(r => setTimeout(r, 500));
+            }
+            
+            // Phase 2: Federated Averaging
+            updateStatus('status', 'Phase 2: Federated Averaging', 'badge-warning');
+            addLog('server-logs', '=== PHASE 2: FEDERATED AVERAGING ===', 'warning');
+            activateNode('node-server');
+            updateStatus('server-status', 'Aggregating', 'badge-warning');
+            
+            addLog('server-logs', 'Collecting model weights from all clients...', 'info');
+            await new Promise(r => setTimeout(r, 500));
+            
+            addLog('server-logs', `Received weights from ${profiles.length} clients`, 'success');
+            addLog('server-logs', 'Merging n-gram patterns...', 'info');
+            await new Promise(r => setTimeout(r, 300));
+            
+            addLog('server-logs', 'Merging bigram patterns...', 'info');
+            await new Promise(r => setTimeout(r, 300));
+            
+            addLog('server-logs', 'Merging word frequencies...', 'info');
+            await new Promise(r => setTimeout(r, 300));
+            
+            // Create server and perform aggregation
+            const server = new FederatedLearningServer();
+            for (const profile of profiles) {
+                server.registerClient(profile, clients[profile].getModel());
+            }
+            
+            const globalWeights = await server.federatedAveraging();
+            
+            addLog('server-logs', 'Global model created successfully!', 'success');
+            addLog('server-logs', `Training rounds: ${server.getStats().trainingRounds}`, 'info');
+            updateStatus('server-status', 'Aggregated', 'badge-success');
+            
+            displayWeights('GLOBAL', globalWeights);
+            
+            await new Promise(r => setTimeout(r, 800));
+            
+            // Phase 3: Distribution
+            updateStatus('status', 'Phase 3: Model Distribution', 'badge-warning');
+            addLog('server-logs', '=== PHASE 3: MODEL DISTRIBUTION ===', 'warning');
+            updateStatus('server-status', 'Distributing', 'badge-warning');
+            
+            for (const profile of profiles) {
+                activateNode(`node-${profile}`);
+                addLog('server-logs', `Sending global model to ${profile}...`, 'info');
+                addLog(`${profile}-logs`, 'Receiving global model from server...', 'info');
+                
+                await clients[profile].getModel().setWeights(globalWeights);
+                
+                addLog(`${profile}-logs`, 'Global model received and applied!', 'success');
+                updateStatus(`${profile}-status`, 'Updated', 'badge-success');
+                
+                await new Promise(r => setTimeout(r, 400));
+            }
+            
+            addLog('server-logs', 'Global model distributed to all clients!', 'success');
+            updateStatus('server-status', 'Complete', 'badge-success');
+            
+            // Phase 4: Fine-tuning
+            updateStatus('status', 'Phase 4: Fine-tuning', 'badge-warning');
+            addLog('server-logs', '=== PHASE 4: LOCAL FINE-TUNING ===', 'warning');
+            
+            for (const profile of profiles) {
+                activateNode(`node-${profile}`);
+                updateStatus(`${profile}-status`, 'Fine-tuning', 'badge-warning');
+                addLog(`${profile}-logs`, 'Fine-tuning with local data...', 'info');
+                
+                const result = await clients[profile].localTraining(1);
+                
+                addLog(`${profile}-logs`, `Fine-tuning complete!`, 'success');
+                addLog(`${profile}-logs`, `Final Accuracy: ${(result.accuracy * 100).toFixed(2)}%`, 'success');
+                updateStatus(`${profile}-status`, `Final (${(result.accuracy * 100).toFixed(0)}%)`, 'badge-success');
+                
+                await new Promise(r => setTimeout(r, 500));
+            }
+            
+            // Complete
+            updateStatus('status', 'Training Complete! ✓', 'badge-success');
+            addLog('server-logs', '=== FEDERATED LEARNING COMPLETE ===', 'success');
+            addLog('server-logs', 'All models trained and synchronized!', 'success');
+            addLog('server-logs', 'Privacy preserved - no raw data was shared', 'success');
+            
+            document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active'));
+        }
+
+        function clearLogs() {
+            ['sports-logs', 'baking-logs', 'cs-logs', 'server-logs', 'weights-view'].forEach(id => {
+                const element = document.getElementById(id);
+                element.innerHTML = '';
+            });
+            startTime = Date.now();
+        }
+    </script>
+</body>
+</html>
