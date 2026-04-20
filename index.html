@@ -3,122 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Federated Learning - Privacy-Preserving Keyboard</title>
+    <title>Federated Learning Demo</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Federated Learning Demo</h1>
-            <p class="subtitle">Privacy-Preserving Next-Word Prediction</p>
-        </header>
+<div class="app-wrapper">
 
-        <div class="stats-panel">
-            <div class="stat-card">
-                <h3>Global Model Accuracy</h3>
-                <div class="stat-value" id="globalAccuracy">0%</div>
+    <header class="main-header">
+        <div class="header-content">
+            <div>
+                <h1>Federated Learning Demo</h1>
+                <p class="subtitle">Privacy-preserving next-word prediction</p>
             </div>
-            <div class="stat-card">
-                <h3>Training Rounds</h3>
-                <div class="stat-value" id="trainingRounds">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Total Updates</h3>
-                <div class="stat-value" id="totalUpdates">0</div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button id="startTraining" class="btn btn-primary">Start Federated Training</button>
-            <button id="resetModels" class="btn btn-secondary">Reset All Models</button>
-            <a href="visualization.html" class="btn btn-secondary" style="text-decoration: none; display: inline-block; line-height: 1;">Behind the Scenes</a>
-            <a href="monitor.html" class="btn btn-secondary" style="text-decoration: none; display: inline-block; line-height: 1;">Live Monitor</a>
-            <div class="training-status" id="trainingStatus">Ready to train</div>
-        </div>
-
-        <div class="users-grid">
-            <!-- User 1: Sports Enthusiast -->
-            <div class="user-panel" data-user="sports">
-                <div class="user-header">
-                    <h2>Alex Martinez</h2>
-                    <div class="user-stats">
-                        <span>Accuracy: <span id="sports-accuracy">0%</span></span>
-                        <span>Loss: <span id="sports-loss">-</span></span>
-                    </div>
+            <div class="header-stats">
+                <div class="hstat">
+                    <span class="hstat-val" id="globalAccuracy">—</span>
+                    <span class="hstat-label">Global Accuracy</span>
                 </div>
-                <div class="chat-container">
-                    <div class="messages" id="sports-messages"></div>
-                    <div class="input-area">
-                        <input type="text" 
-                               id="sports-input" 
-                               class="chat-input" 
-                               placeholder="Search or type a message..."
-                               autocomplete="off">
-                        <div class="predictions" id="sports-predictions"></div>
-                    </div>
+                <div class="hstat">
+                    <span class="hstat-val" id="trainingRounds">0</span>
+                    <span class="hstat-label">Rounds</span>
                 </div>
-            </div>
-
-            <!-- User 2: Baking Expert -->
-            <div class="user-panel" data-user="baking">
-                <div class="user-header">
-                    <h2>Bailey Chen</h2>
-                    <div class="user-stats">
-                        <span>Accuracy: <span id="baking-accuracy">0%</span></span>
-                        <span>Loss: <span id="baking-loss">-</span></span>
-                    </div>
-                </div>
-                <div class="chat-container">
-                    <div class="messages" id="baking-messages"></div>
-                    <div class="input-area">
-                        <input type="text" 
-                               id="baking-input" 
-                               class="chat-input" 
-                               placeholder="Search or type a message..."
-                               autocomplete="off">
-                        <div class="predictions" id="baking-predictions"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- User 3: Computer Science -->
-            <div class="user-panel" data-user="cs">
-                <div class="user-header">
-                    <h2>Chris Taylor</h2>
-                    <div class="user-stats">
-                        <span>Accuracy: <span id="cs-accuracy">0%</span></span>
-                        <span>Loss: <span id="cs-loss">-</span></span>
-                    </div>
-                </div>
-                <div class="chat-container">
-                    <div class="messages" id="cs-messages"></div>
-                    <div class="input-area">
-                        <input type="text" 
-                               id="cs-input" 
-                               class="chat-input" 
-                               placeholder="Search or type a message..."
-                               autocomplete="off">
-                        <div class="predictions" id="cs-predictions"></div>
-                    </div>
+                <div class="hstat">
+                    <span class="hstat-val" id="totalUpdates">0</span>
+                    <span class="hstat-label">Updates</span>
                 </div>
             </div>
         </div>
+    </header>
 
-        <div class="info-panel">
-            <h3>How Federated Learning Works</h3>
-            <ol>
-                <li><strong>Local Training:</strong> Each user's model trains on their own data locally</li>
-                <li><strong>Model Updates:</strong> Only model weights (not data) are shared</li>
-                <li><strong>Federated Averaging:</strong> Server aggregates weights to create global model</li>
-                <li><strong>Distribution:</strong> Updated global model sent back to all users</li>
-                <li><strong>Privacy:</strong> Raw data never leaves the user's device</li>
-            </ol>
+    <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-fl" onclick="switchMode('fl')">
+            Federated Learning
+            <span class="tab-badge">Privacy-first</span>
+        </button>
+        <button class="mode-tab" id="tab-trad" onclick="switchMode('trad')">
+            Traditional ML
+            <span class="tab-badge warning">Data shared</span>
+        </button>
+    </div>
+
+    <div class="control-bar">
+        <div class="control-left">
+            <button id="startTraining" class="btn btn-primary" onclick="handleStartTraining()">
+                <span id="btnText">Start FL Training</span>
+            </button>
+            <button class="btn" onclick="handleReset()">Reset</button>
+            <a href="visualization.html" class="btn">Behind the Scenes</a>
+            <a href="monitor.html" class="btn">Live Monitor</a>
+        </div>
+        <div class="status-pill">
+            <span class="status-dot idle" id="statusDot"></span>
+            <span id="statusText">Ready to train</span>
         </div>
     </div>
 
-    <script src="vocabulary.js"></script>
-    <script src="model.js"></script>
-    <script src="federatedLearning.js"></script>
-    <script src="app.js"></script>
+    <div class="stage" id="mainStage">
+
+        <!-- ── Federated Learning View ── -->
+        <div class="mode-view" id="view-fl">
+
+            <!-- Animation SVG overlay — drawn over the whole FL view -->
+    <svg id="animSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:50;overflow:visible"></svg>
+
+    <div class="phones-row">
+
+                <!-- Alex — Sports -->
+                <div class="phone-wrapper" id="phone-sports">
+                    <div class="phone-label">
+                        Alex Martinez
+                        <span class="user-tag">Sports</span>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="phone-statusbar"><span>9:41</span><span>●●● ▮</span></div>
+                            <div class="phone-app-header sports-header">SmartKeyboard</div>
+                            <div class="phone-chat" id="sports-messages"></div>
+                            <div class="phone-keyboard-area">
+                                <div class="phone-predictions" id="sports-predictions"></div>
+                                <div class="phone-input-row">
+                                    <input type="text" id="sports-input" class="phone-input" placeholder="Type a message..." autocomplete="off">
+                                    <button class="send-btn" onclick="sendMsg('sports')">↑</button>
+                                </div>
+                            </div>
+                            <div class="training-overlay" id="overlay-sports">
+                                <div class="training-overlay-content">
+                                    <div class="train-label" id="train-label-sports">Training locally...</div>
+                                    <canvas class="train-nn-canvas" id="nn-sports" width="160" height="80"></canvas>
+                                    <canvas class="train-loss-canvas" id="loss-sports" width="160" height="40"></canvas>
+                                    <div class="train-epoch-row">
+                                        <span class="train-epoch-val" id="epoch-sports">Epoch 0</span>
+                                        <span class="train-stats" id="train-stats-sports"></span>
+                                    </div>
+                                    <div class="train-progress-bar"><div class="train-progress-fill" id="prog-sports"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="phone-home-bar"></div>
+                    </div>
+                    <div class="phone-stats-row">
+                        <span class="pstat">Acc <b id="sports-accuracy">—</b></span>
+                        <span class="pstat">Loss <b id="sports-loss">—</b></span>
+                    </div>
+                </div>
+
+                <!-- Bailey — Baking -->
+                <div class="phone-wrapper" id="phone-baking">
+                    <div class="phone-label">
+                        Bailey Chen
+                        <span class="user-tag">Baking</span>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="phone-statusbar"><span>9:41</span><span>●●● ▮</span></div>
+                            <div class="phone-app-header baking-header">SmartKeyboard</div>
+                            <div class="phone-chat" id="baking-messages"></div>
+                            <div class="phone-keyboard-area">
+                                <div class="phone-predictions" id="baking-predictions"></div>
+                                <div class="phone-input-row">
+                                    <input type="text" id="baking-input" class="phone-input" placeholder="Type a message..." autocomplete="off">
+                                    <button class="send-btn" onclick="sendMsg('baking')">↑</button>
+                                </div>
+                            </div>
+                            <div class="training-overlay" id="overlay-baking">
+                                <div class="training-overlay-content">
+                                    <div class="train-label" id="train-label-baking">Training locally...</div>
+                                    <canvas class="train-nn-canvas" id="nn-baking" width="160" height="80"></canvas>
+                                    <canvas class="train-loss-canvas" id="loss-baking" width="160" height="40"></canvas>
+                                    <div class="train-epoch-row">
+                                        <span class="train-epoch-val" id="epoch-baking">Epoch 0</span>
+                                        <span class="train-stats" id="train-stats-baking"></span>
+                                    </div>
+                                    <div class="train-progress-bar"><div class="train-progress-fill" id="prog-baking"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="phone-home-bar"></div>
+                    </div>
+                    <div class="phone-stats-row">
+                        <span class="pstat">Acc <b id="baking-accuracy">—</b></span>
+                        <span class="pstat">Loss <b id="baking-loss">—</b></span>
+                    </div>
+                </div>
+
+                <!-- Central Server -->
+                <div class="server-wrapper" id="serverWrapper">
+                    <div class="server-box" id="serverBox">
+                        <span class="server-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+                                <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+                            </svg>
+                        </span>
+                        <div class="server-title">Central Server</div>
+                        <div class="server-subtitle">FedAvg Aggregator</div>
+                        <div class="server-status" id="serverStatus">Idle</div>
+                        <div class="server-metrics">
+                            <div class="sm-row"><span>Clients</span><span id="srv-clients">3</span></div>
+                            <div class="sm-row"><span>Round</span><span id="srv-round">0</span></div>
+                            <div class="sm-row"><span>Accuracy</span><span id="srv-acc">—</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chris — CS -->
+                <div class="phone-wrapper" id="phone-cs">
+                    <div class="phone-label">
+                        Chris Taylor
+                        <span class="user-tag">CS</span>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="phone-statusbar"><span>9:41</span><span>●●● ▮</span></div>
+                            <div class="phone-app-header cs-header">SmartKeyboard</div>
+                            <div class="phone-chat" id="cs-messages"></div>
+                            <div class="phone-keyboard-area">
+                                <div class="phone-predictions" id="cs-predictions"></div>
+                                <div class="phone-input-row">
+                                    <input type="text" id="cs-input" class="phone-input" placeholder="Type a message..." autocomplete="off">
+                                    <button class="send-btn" onclick="sendMsg('cs')">↑</button>
+                                </div>
+                            </div>
+                            <div class="training-overlay" id="overlay-cs">
+                                <div class="training-overlay-content">
+                                    <div class="train-label" id="train-label-cs">Training locally...</div>
+                                    <canvas class="train-nn-canvas" id="nn-cs" width="160" height="80"></canvas>
+                                    <canvas class="train-loss-canvas" id="loss-cs" width="160" height="40"></canvas>
+                                    <div class="train-epoch-row">
+                                        <span class="train-epoch-val" id="epoch-cs">Epoch 0</span>
+                                        <span class="train-stats" id="train-stats-cs"></span>
+                                    </div>
+                                    <div class="train-progress-bar"><div class="train-progress-fill" id="prog-cs"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="phone-home-bar"></div>
+                    </div>
+                    <div class="phone-stats-row">
+                        <span class="pstat">Acc <b id="cs-accuracy">—</b></span>
+                        <span class="pstat">Loss <b id="cs-loss">—</b></span>
+                    </div>
+                </div>
+
+            </div><!-- /phones-row -->
+
+            <div class="fl-steps" id="flSteps">
+                <div class="fl-step" id="step1">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Local Training<small>On-device, private</small></div>
+                </div>
+                <div class="step-arrow">›</div>
+                <div class="fl-step" id="step2">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Upload Weights<small>No raw data sent</small></div>
+                </div>
+                <div class="step-arrow">›</div>
+                <div class="fl-step" id="step3">
+                    <div class="step-num">3</div>
+                    <div class="step-text">FedAvg<small>Server aggregates</small></div>
+                </div>
+                <div class="step-arrow">›</div>
+                <div class="fl-step" id="step4">
+                    <div class="step-num">4</div>
+                    <div class="step-text">Distribute<small>Global model back</small></div>
+                </div>
+            </div>
+
+        </div><!-- /view-fl -->
+
+        <!-- ── Traditional ML View ── -->
+        <div class="mode-view hidden" id="view-trad">
+            <div class="trad-layout">
+
+                <div class="trad-phones">
+
+                    <div class="trad-phone-card" id="trad-phone-sports">
+                        <div class="trad-phone-mini">
+                            <div class="tpm-notch"></div>
+                            <div class="tpm-screen">
+                                <div class="tpm-header sports-header">Alex</div>
+                                <div class="tpm-chat" id="trad-sports-messages"></div>
+                                <div class="tpm-keyboard-area">
+                                    <div class="tpm-predictions" id="trad-sports-predictions"></div>
+                                    <div class="tpm-input-row">
+                                        <input type="text" id="trad-sports-input" class="tpm-input" placeholder="Type..." autocomplete="off">
+                                        <button class="tpm-send" onclick="sendTradMsg('sports')">↑</button>
+                                    </div>
+                                </div>
+                                <div class="trad-overlay" id="trad-overlay-sports">
+                                    <div class="trad-overlay-inner">
+                                        <div class="trad-spinner"></div>
+                                        <div>Uploading data...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trad-warning">Raw data sent to server</div>
+                        <div class="trad-pstats">Acc <b id="trad-sports-accuracy">—</b></div>
+                    </div>
+
+                    <div class="trad-phone-card" id="trad-phone-baking">
+                        <div class="trad-phone-mini">
+                            <div class="tpm-notch"></div>
+                            <div class="tpm-screen">
+                                <div class="tpm-header baking-header">Bailey</div>
+                                <div class="tpm-chat" id="trad-baking-messages"></div>
+                                <div class="tpm-keyboard-area">
+                                    <div class="tpm-predictions" id="trad-baking-predictions"></div>
+                                    <div class="tpm-input-row">
+                                        <input type="text" id="trad-baking-input" class="tpm-input" placeholder="Type..." autocomplete="off">
+                                        <button class="tpm-send" onclick="sendTradMsg('baking')">↑</button>
+                                    </div>
+                                </div>
+                                <div class="trad-overlay" id="trad-overlay-baking">
+                                    <div class="trad-overlay-inner">
+                                        <div class="trad-spinner"></div>
+                                        <div>Uploading data...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trad-warning">Raw data sent to server</div>
+                        <div class="trad-pstats">Acc <b id="trad-baking-accuracy">—</b></div>
+                    </div>
+
+                    <div class="trad-phone-card" id="trad-phone-cs">
+                        <div class="trad-phone-mini">
+                            <div class="tpm-notch"></div>
+                            <div class="tpm-screen">
+                                <div class="tpm-header cs-header">Chris</div>
+                                <div class="tpm-chat" id="trad-cs-messages"></div>
+                                <div class="tpm-keyboard-area">
+                                    <div class="tpm-predictions" id="trad-cs-predictions"></div>
+                                    <div class="tpm-input-row">
+                                        <input type="text" id="trad-cs-input" class="tpm-input" placeholder="Type..." autocomplete="off">
+                                        <button class="tpm-send" onclick="sendTradMsg('cs')">↑</button>
+                                    </div>
+                                </div>
+                                <div class="trad-overlay" id="trad-overlay-cs">
+                                    <div class="trad-overlay-inner">
+                                        <div class="trad-spinner"></div>
+                                        <div>Uploading data...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trad-warning">Raw data sent to server</div>
+                        <div class="trad-pstats">Acc <b id="trad-cs-accuracy">—</b></div>
+                    </div>
+
+                </div>
+
+                <div class="trad-server-area">
+                    <div class="trad-server-box" id="tradServerBox">
+                        <span class="server-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+                                <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+                            </svg>
+                        </span>
+                        <div class="server-title">Central Server</div>
+                        <div class="server-subtitle">Centralized Training</div>
+                        <div class="server-status" id="tradServerStatus">Idle</div>
+                        <div class="trad-server-progress-bar"><div class="trad-server-progress-fill" id="tradServerProgress"></div></div>
+                        <div class="trad-data-vault">
+                            <div class="vault-label">Data received</div>
+                            <div class="vault-items" id="vaultItems"></div>
+                        </div>
+                        <div class="privacy-warning">All user data stored centrally</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="comparison-banner">
+                <div class="comp-item good">FL: only model weights shared — predictions are personalized per user</div>
+                <div class="comp-divider">vs</div>
+                <div class="comp-item bad">Traditional: raw data sent to server — all users get the same generic model</div>
+            </div>
+        </div><!-- /view-trad -->
+
+    </div><!-- /stage -->
+
+</div><!-- /app-wrapper -->
+
+<script src="vocabulary.js"></script>
+<script src="model.js"></script>
+<script src="federatedLearning.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
